@@ -31,45 +31,47 @@ guard let mode = args.shift() else {
     print("    ./main query index_path term1 term2 term3")
     exit(0)
 }
-guard ["init", "query"].contains(mode) else { 
-    print("Unknown mode (\(mode))- must be one of {init|query}.")
-    exit(0)
-}
 
-if mode == "query" {
+switch mode {
+case "query":
     guard let path = args.shift() ?? prompt("Path of index file to query: ") else {
         print("nevermind.")
-        exit(0)
+        break
     }
     guard let fh = FileHandle(forReadingAtPath: path) else {
         print("File in path \(path) not found.")
-        exit(0)
+        break
     }
+    defer {
+        do {
+            try fh.close()
+        } catch { print("Failed to close handle.") }
+    }
+
     while let line = args.shift() ?? prompt("Query a word? ") {
-        let result = query(fh: fh, str: line)
+        let pat = Pattern(from: line)
+        let result = query(fh: fh, pat: pat)
         if !result.isEmpty {
             print("String '\(line)' is found in locations \(result)")
         } else {
             print("String '\(line)' was not found")
         }
     }
-    print("Exiting.")
-    exit(0)
-} else if mode == "init" {
+case "init":
     guard let textPath = args.shift() ?? prompt("Path of text file to index: ") else {
         print("nevermind")
-        exit(0)
+        break
     }
 
     print("Reading text from '\(textPath)'.")
     guard let textFH = FileHandle(forReadingAtPath: textPath) else {
         print("Could not make file handle for '" + textPath + "'")
-        exit(1)
+        break
     }
 
     guard let indexLine = args.shift() ?? prompt("Path of destination index file: ") else {
         print("nevermind")
-        exit(0)
+        break
     }
     var indexPath = indexLine
     if(indexLine == "") {
@@ -80,11 +82,11 @@ if mode == "query" {
     print("Creating index in '\(indexPath)'.")
     guard FileManager.default.createFile(atPath: indexPath, contents: nil) else {
         print("could not find or create index file at path '\(indexPath)'")
-        exit(1)
+        break
     }
     guard let indexFH = FileHandle(forUpdatingAtPath: indexPath) else {
         print("could not make file handle for '\(textPath)'")
-        exit(1)
+        break
     }
 
     print("both file handles are created")
@@ -102,9 +104,11 @@ if mode == "query" {
         print("Error " + e.debugDescription + " while trying to close file handles.")
     }
 
-
     if(!errors) {
         print("Closed file handles with no errors.")
     }
+default:
+    print("Unknown mode (\(mode))- must be one of {init|query}.")
 }
+print("Exiting.")
 

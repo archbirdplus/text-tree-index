@@ -38,3 +38,11 @@ extension FileHandle {
     }
 }
 
+extension Set {
+    static func union<T>(_ set: Set<T>, _ sets: Set<T>...) -> Set<T> {
+        var tmp: Set<T> = set
+        sets.forEach { tmp.formUnion($0) }
+        return tmp
+    }
+}
+

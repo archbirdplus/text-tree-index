@@ -1,10 +1,11 @@
 
 # Features:
 
-* Ideally generates indexes for arbitrarily large text files using finite RAM.
-* Finds locations of string matches in O(<tree-depth>) time.
-* Technically matches utf8 bytes individually.
-* 77kB/s initialization (very slow)
+* Regex-like pattern matching.
+* Generates indexes for arbitrarily large text files using finite RAM.
+* Finds locations of text matches in O(\<depth\> + \<result count\>) time.
+* Matches utf8 bytes individually, rather than as whole points.
+* 77kB/s initialization (very slow).
 
 # Algorithm:
 
@@ -23,20 +24,23 @@
 
 * Begin at the root node
 * For each character until depth is reached
-    * offset the cursor by the char value
+    * offset the cursor by one of the matching char values
     * read the value in the node at the cursor
     * jump to value, to get to the next node
 * While the value is non-zero, follow the linked list (value, text_index)
+* TODO: look back at the text file and continue matching the pattern
 
-## Optimization (TODO?)
+## File Optimization Step (TODO?)
 * Copy the nodes into another file
 * Trace all linked lists and append them as compact arrays
 * Include the length of the array at the beginning
 
 # TODO:
 * Allow it to index streams
-* Pattern-matching
-* Allow queries to be longer or shorter than the tree structure
+* Allow patterns to be longer than the tree structure
 * Allow customizable tree depths
 * Allow the linked lists to be compacted
-* More optimizations, because it's only at 77kB/s (maybe cache the tree in RAM?)
+* Optimize initialization, because it's only at 77kB/s, unusable
+    * cache tree in RAM?
+    * async/concurrent I/O?
+    * larger blocks?
